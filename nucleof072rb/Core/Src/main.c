@@ -57,41 +57,7 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
-uint16_t ADCRead(uint8_t input_channel){
-
-	uint8_t transmit_data [3];
-	uint8_t recieve_data [3];
-
-
-	transmit_data [0] = 1;
-	transmit_data[1] = (0x08 | (input_channel & 0x07)) << 4;
-	transmit_data [2] = 0;
-
-
-
-	//Start Communication
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_RESET);
-
-	HAL_SPI_TransmitReceive(&hspi1, transmit_data, recieve_data, 3, 200);
-
-	//STop Communication
-	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_7,GPIO_PIN_SET);
-
-	recieve_data [1] = recieve_data[1]&3;
-
-	uint16_t received_val = (recieve_data[1] <<8) | recieve_data[2];
-
-	return received_val;
-
-}
-
-
-
-
-
-
-
+uint16_t ADCRead(uint8_t input_channel);
 
 /* USER CODE END 0 */
 
@@ -130,6 +96,7 @@ int main(void)
 
   /* USER CODE BEGIN 2 */
 
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
 
 
 
@@ -139,7 +106,18 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+
+
+
+
+
 	  HAL_Delay(10);
+	  uint16_t ADC_data = ADCRead(0);
+
+	  unsigned int pulse = 1000+ ((ADC_data *1000)/1023);
+	  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, pulse);
+
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -188,7 +166,29 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+uint16_t ADCRead(uint8_t input_channel){
 
+	uint8_t transmit_data [3];
+	uint8_t recieve_data [3];
+
+	transmit_data [0] = 1;
+	transmit_data[1] = (0x08 | (input_channel & 0x07)) << 4;
+	transmit_data [2] = 0;
+
+	//Start Communication
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_RESET);
+
+	HAL_SPI_TransmitReceive(&hspi1, transmit_data, recieve_data, 3, 200);
+
+	//STop Communication
+	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_8,GPIO_PIN_SET);
+
+	recieve_data [1] = recieve_data[1]&3;
+
+	uint16_t received_val = (recieve_data[1] <<8) | recieve_data[2];
+
+	return received_val;
+}
 /* USER CODE END 4 */
 
 /**
