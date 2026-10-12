@@ -106,11 +106,6 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-
-
-
-
-
 	  HAL_Delay(10);
 	  uint16_t ADC_data = ADCRead(0);
 
