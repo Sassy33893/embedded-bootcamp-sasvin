@@ -23,7 +23,7 @@
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
-
+#include <stdio.h>
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -46,18 +46,27 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+static uint8_t transmit_data[3] = {1, 0x80, 0};
+static uint8_t recieve_data[3];
+
+static const uint16_t MIN_PULSE = 1000;
+static const uint16_t MAX_PULSE = 2000;
+static const uint16_t MAX_ADC_READING = 1023;
+static const uint16_t SPI_DATA_SIZE = 3;
+static const uint32_t SPI_TIMEOUT = 200;
+
 
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-
+uint16_t ADCRead(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-uint16_t ADCRead(uint8_t input_channel);
+
 
 /* USER CODE END 0 */
 
@@ -106,18 +115,11 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-
-
-
-
-
 	  HAL_Delay(10);
-	  uint16_t ADC_data = ADCRead(0);
+	  uint16_t ADC_data = ADCRead();
 
-	  unsigned int pulse = 1000+ ((ADC_data *1000)/1023);
+	  unsigned int pulse = MIN_PULSE+ ((ADC_data *(MAX_PULSE-MIN_PULSE))/MAX_ADC_READING);
 	  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, pulse);
-
-
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -166,27 +168,27 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-uint16_t ADCRead(uint8_t input_channel){
+uint16_t ADCRead(void){
 
-	uint8_t transmit_data [3];
-	uint8_t recieve_data [3];
-
-	transmit_data [0] = 1;
-	transmit_data[1] = (0x08 | (input_channel & 0x07)) << 4;
-	transmit_data [2] = 0;
+	//variable to store communication status
+	HAL_StatusTypeDef spi_transmission_status;
 
 	//Start Communication
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_RESET);
 
-	HAL_SPI_TransmitReceive(&hspi1, transmit_data, recieve_data, 3, 200);
+	spi_transmission_status = HAL_SPI_TransmitReceive(&hspi1, transmit_data, recieve_data, SPI_DATA_SIZE, SPI_TIMEOUT);
 
-	//STop Communication
+	//Print error code if needed
+	if (spi_transmission_status != HAL_OK) {
+		printf("Error in transmission, error code: %u\r\n", (unsigned int)HAL_SPI_GetError(&hspi1));
+
+	}
+
+	//Stop Communication
 	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_8,GPIO_PIN_SET);
 
-	recieve_data [1] = recieve_data[1]&3;
-
-	uint16_t received_val = (recieve_data[1] <<8) | recieve_data[2];
-
+	//Return the result
+	uint16_t received_val = ((recieve_data[1]&3) <<8) | recieve_data[2];
 	return received_val;
 }
 /* USER CODE END 4 */
