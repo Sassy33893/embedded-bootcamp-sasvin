@@ -23,9 +23,10 @@
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
-#include <stdio.h>
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <stdio.h>
 
 /* USER CODE END Includes */
 
@@ -49,8 +50,8 @@
 static uint8_t transmit_data[3] = {0x01, 0x80, 0};
 static uint8_t recieve_data[3];
 
-static const uint16_t MIN_PULSE = 1000;
-static const uint16_t MAX_PULSE = 2000;
+static const uint16_t MIN_PULSE = 3200;
+static const uint16_t MAX_PULSE = 6400;
 static const uint16_t MAX_ADC_READING = 1023;
 static const uint16_t SPI_DATA_SIZE = 3;
 static const uint32_t SPI_TIMEOUT = 200;
@@ -101,8 +102,6 @@ int main(void)
   MX_USART2_UART_Init();
   MX_SPI1_Init();
   MX_TIM1_Init();
-
-
   /* USER CODE BEGIN 2 */
 
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
