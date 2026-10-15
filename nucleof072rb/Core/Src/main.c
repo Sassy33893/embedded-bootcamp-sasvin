@@ -46,7 +46,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-static uint8_t transmit_data[3] = {1, 0x80, 0};
+static uint8_t transmit_data[3] = {0x01, 0x80, 0};
 static uint8_t recieve_data[3];
 
 static const uint16_t MIN_PULSE = 1000;
@@ -188,7 +188,7 @@ uint16_t ADCRead(void){
 	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_8,GPIO_PIN_SET);
 
 	//Return the result
-	uint16_t received_val = ((recieve_data[1]&3) <<8) | recieve_data[2];
+	uint16_t received_val = ((recieve_data[1]&0x03) <<0x08) | recieve_data[2];
 	return received_val;
 }
 /* USER CODE END 4 */
